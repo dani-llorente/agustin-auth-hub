@@ -2,20 +2,22 @@ name: Build & Publish to deploy (Bun + Plesk)
 
 on:
   push:
-    branches: [ main ]     # cada push a main publica
-  workflow_dispatch:        # también puedes lanzarlo a mano
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write  # necesario para poder publicar en la rama deploy
 
 jobs:
-  build-and-publish:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout main
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0   # necesario para publicar a otra rama
 
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven/sh/setup-bun@v1
         with:
           bun-version: latest
 
@@ -26,9 +28,8 @@ jobs:
         run: bun run build
 
       - name: Publish dist/ to deploy branch
-        uses: peaceiris/actions-gh-pages@v3
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
-          publish_branch: deploy
-          force_orphan: true
+          branch: deploy   # rama de destino
+          folder: dist     # lo que publica Vite
+          clean: true
